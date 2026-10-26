@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MileStone</title>
+<style>
+  :root{
+    --bg:#F1F5F2;          /* MileStone page background */
+    --card:#ffffff;
+    --line:#D9E4DF;
+    --text:#17313A;        /* MileStone primary text */
+    --muted:#52696D;
+    --panel:#173B4A;       /* MileStone primary (dark teal) */
+    --panel-text:#eef3f4;
+    --panel-muted:#a9bcc2;
+    --amber:#E9A23B;       /* MileStone accent */
+    --amber-dark:#c9831f;
+    --green:#3f9e70;
+    --yellow:#eda33a;
+    --red:#d64545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
+  .app{width:100%;max-width:440px;padding:24px 16px 40px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+  h1{font-size:30px;line-height:1.1;margin:6px 0 0;font-weight:800}
+  .sub{color:var(--muted);font-size:14px;margin-top:6px}
+  .badge{width:46px;height:46px;border-radius:50%;background:#e3e1da;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+
+  .panel{background:var(--panel);color:var(--panel-text);border-radius:22px;padding:20px;margin-bottom:16px}
+  .panel-top{display:flex;justify-content:space-between;align-items:center}
+  .status{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--panel-muted);display:flex;align-items:center;gap:8px}
+  .status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber)}
+  .panel-row{display:flex;justify-content:space-between;align-items:flex-end;margin:14px 0 4px}
+  .timer{font-size:34px;font-weight:800}
+  .timer span{display:none}
+  .score{color:var(--panel-muted);font-size:13px;text-align:right}
+  .score b{color:var(--panel-text);font-size:24px;display:block}
+  .hint{color:var(--panel-muted);font-size:14px;line-height:1.45;margin:0 0 16px}
+
+  button{border:0;border-radius:14px;padding:16px 18px;font-weight:700;font-size:16px;cursor:pointer;color:var(--text);background:var(--amber);width:100%;transition:background .15s}
+  button:hover{background:var(--amber-dark)}
+  button.start{background:var(--amber);color:var(--text)}
+
+  .stage{position:relative;margin:0 0 16px;border:3px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:#132830;transition:border-color .2s}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(19,40,48,.82);font-weight:800;font-size:22px;padding:12px}
+  .overlay .icon{width:60px;height:60px;border:4px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:14px}
+  .stage.ok{border-color:var(--green)}
+  .stage.warn{border-color:var(--yellow)} .stage.warn .overlay{display:flex;color:var(--yellow)}
+  .stage.alert{border-color:var(--red)}  .stage.alert .overlay{display:flex;color:#ff8a8a}
+  .banner{position:absolute;left:0;right:0;bottom:0;padding:8px;font-size:13px;text-align:center;background:rgba(19,40,48,.75);color:var(--panel-muted)}
+
+  .section-title{font-size:20px;font-weight:800;margin:4px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(27,42,51,.04)}
+  .card h3{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--muted)}
+  .card h3 i{font-style:normal;color:var(--amber-dark);margin-right:6px}
+  .card .v{font-size:22px;font-weight:800}
+  .card .l{color:var(--muted);font-size:12px;margin-top:2px}
+  .summary{margin-top:12px;display:none}
+  .summary b{color:var(--text)}
+
+  /* ---- Progress ---- */
+  .block{margin-top:28px}
+  .prog-row{margin-bottom:16px}
+  .prog-row:last-of-type{margin-bottom:8px}
+  .prog-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:700;margin-bottom:6px}
+  .prog-head span{color:var(--muted);font-weight:600;font-size:13px}
+  .bar{height:10px;border-radius:99px;background:#ecebe5;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--amber);transition:width .4s}
+  .bar.night i{background:var(--panel)}
+  .note{color:var(--muted);font-size:12px;line-height:1.4;margin:0}
+
+  /* ---- Profile form ---- */
+  .field{display:block;margin-bottom:12px}
+  .field:last-child{margin-bottom:0}
+  .field span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+  .field input{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#faf9f6;color:var(--text)}
+  .field input:focus{outline:2px solid var(--amber);outline-offset:0;border-color:transparent}
+
+  /* ---- Driving log ---- */
+  .log-head{display:flex;justify-content:space-between;align-items:baseline}
+  .log-head span{color:var(--muted);font-size:13px;font-weight:600}
+  .log{padding:4px 16px}
+  .log .empty{color:var(--muted);font-size:14px;padding:14px 0;text-align:center}
+  .entry{padding:14px 0;border-bottom:1px solid var(--line)}
+  .entry:last-child{border-bottom:0}
+  .entry-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .when{font-weight:700;font-size:14px}
+  .when small{display:block;color:var(--muted);font-weight:600;font-size:12px;margin-top:2px}
+  .stats{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);text-align:right}
+  .pill{font-size:13px;font-weight:800;padding:4px 9px;border-radius:99px;color:#fff;min-width:46px;text-align:center}
+  .pill.good{background:var(--green)} .pill.mid{background:var(--amber-dark)} .pill.low{background:var(--red)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--panel);color:var(--panel-text);margin-left:6px;vertical-align:1px}
+  .feedback{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.4}
+
+  .actions{display:grid;gap:10px;margin-top:12px}
+  button.dark{background:var(--panel);color:var(--panel-text)}
+  button.dark:hover{background:#16303a}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-size:14px;padding:12px}
+  button.ghost:hover{background:#e9e7e0}
+  button.ghost.confirm{color:var(--red);border-color:var(--red)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .msg{font-size:13px;color:var(--muted);text-align:center;min-height:18px}
+
+  /* ---- Speed card ---- */
+  .speed{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .2s,background .2s}
+  .speed .v{font-size:30px}
+  .speed .v small{font-size:14px;font-weight:700;color:var(--muted);margin-left:4px}
+  .limit{width:62px;border:2.5px solid var(--text);border-radius:8px;background:#fff;text-align:center;padding:4px 2px 3px;flex:none}
+  .limit small{display:block;font-size:8px;font-weight:800;letter-spacing:.04em;line-height:1.1}
+  .limit b{display:block;font-size:24px;line-height:1.05;margin-top:2px}
+  .speed.over{border-color:var(--red);background:#fdf1f1}
+  .speed.over .v{color:var(--red)}
+
+  .tag.test{background:var(--amber);color:var(--text)}
+
+  /* ---- Sign-in (from the Thunkable app) ---- */
+  [hidden]{display:none !important}
+  .signin{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+  .shield{width:52px;height:52px;border-radius:50%;background:#E5EFEB;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+  .card-title{font-size:18px;font-weight:800;margin:0 0 12px}
+  .intro{color:var(--muted);font-size:15px;line-height:1.5;margin:10px 0 22px}
+  .photo-btn{display:block;text-align:center;border:1px solid var(--line);border-radius:14px;padding:13px;font-weight:700;font-size:15px;color:var(--panel);margin-bottom:12px;cursor:pointer;background:#fff}
+  .photo-btn.done{background:#E5EFEB;cursor:default}
+  .photo-preview{width:100%;max-height:240px;object-fit:cover;border-radius:14px;margin-bottom:12px;display:block}
+  .error{color:var(--red);font-size:13px;min-height:18px;margin-top:8px;text-align:center}
+  .badge img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+  .linkbtn{background:none;border:0;padding:0;width:auto;color:var(--muted);font-size:13px;font-weight:700;text-decoration:underline;margin-top:6px}
+  .linkbtn:hover{background:none;color:var(--text)}
+
+  /* ---- Pre-drive verification ---- */
+  .verify{display:grid;gap:8px;margin-bottom:12px}
+  .vrow{display:flex;align-items:center;gap:12px;text-align:left;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:var(--panel-text);padding:12px 14px;border-radius:14px;font-size:15px}
+  .vrow:hover{background:rgba(255,255,255,.12)}
+  .vrow small{display:block;font-weight:500;font-size:12px;color:var(--panel-muted);margin-top:2px}
+  .vicon{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:rgba(255,255,255,.12)}
+  .vrow.ok{border-color:var(--green)} .vrow.ok .vicon{background:var(--green);color:#fff}
+  .vrow.skip{border-color:var(--amber)} .vrow.skip .vicon{background:var(--amber);color:var(--text)}
+  .tag.ok{background:var(--green);color:#fff}
+  .tag.no{background:#e9e7e0;color:var(--muted)}
+
+  /* ---- Drive tab, matched to the Thunkable Drive screen ---- */
+  .who{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
+  .who .badge{width:72px;height:72px;font-size:28px}
+  .who .linkbtn{text-decoration:none;color:var(--text);font-size:15px;margin:0}
+  .status::before{background:#ADC5C5}
+  .status.active::before{background:var(--amber)}
+  .status{color:#E5F0EE}
+  .navicon{color:#D5E6E4}
+  .hero{font-size:30px;font-weight:800;color:#fff;margin:34px 0 8px;line-height:1.15}
+  #idleBlock .hint{color:#E0EBE9;font-size:16px;line-height:1.5;margin-bottom:24px}
+  button.outline{display:flex;align-items:center;justify-content:center;gap:12px;background:transparent;border:1px solid #7A9AA1;color:#fff;font-weight:600;font-size:16px;margin-bottom:12px;padding:15px}
+  button.outline:hover{background:rgba(255,255,255,.06)}
+  button.outline.done{border-color:var(--green)}
+  #btn:disabled{opacity:.55}
+  .error.light{color:#ffb4a8}
+  .linkbtn.light{color:#E0EBE9;margin-top:8px;font-size:13px}
+
+  /* ---- Bottom tab bar ---- */
+  .tabbed{padding-bottom:96px}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:40}
+  .tabbar button{flex:1;max-width:147px;background:none;border-radius:0;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted)}
+  .tabbar button:hover{background:none;color:var(--text)}
+  .tabbar button.on{color:var(--panel)}
+
+  /* ---- Guardian passcode screen ---- */
+  .modal{position:fixed;inset:0;background:rgba(241,245,242,.97);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+  .modal-card{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(23,59,74,.12)}
+  .modal-card input{width:100%;font:inherit;font-size:20px;letter-spacing:.3em;text-align:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin:12px 0}
+  .modal-card .ghost{margin-top:8px}
+</style>
+<!-- PDF libraries (loaded as plain scripts so they're ready before the module runs) -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+<!-- ===== 1. Sign-in (rebuilt from the Thunkable LoginGate) ===== -->
+<div class="app signin" id="signinView" hidden>
+  <div class="shield">🛡</div>
+  <div class="eyebrow">MileStone</div>
+  <h1>A safer start, together.</h1>
+  <p class="intro">Sign in to open your supervised driving log and progress dashboard.</p>
+  <div class="card">
+    <h2 class="card-title">Welcome back</h2>
+    <label class="field"><span>Email address</span><input id="siEmail" type="email" autocomplete="email" autocapitalize="none" placeholder="you@example.com"></label>
+    <label class="field"><span>Password</span><input id="siPassword" type="password" autocomplete="current-password" placeholder="Password"></label>
+    <img id="siPhotoPreview" class="photo-preview" alt="Account photo" hidden>
+    <label class="photo-btn" id="siPhotoBtn"><input type="file" accept="image/*" capture="user" id="siPhoto" hidden><span id="siPhotoTxt">📷 Add account photo (once)</span></label>
+    <button id="siSubmit" class="dark">Continue to driving log</button>
+    <div class="error" id="siMsg"></div>
+    <p class="note">Demo sign-in for this device. Your password is not verified or stored.</p>
+  </div>
+</div>
+
+<!-- ===== 2. Main app: three tabs, like the Thunkable app ===== -->
+<div class="app tabbed" id="mainView" hidden>
+
+  <!-- ================= DRIVE TAB ================= -->
+  <section id="tab-drive">
+    <header>
+      <div>
+        <div class="eyebrow">MileStone / Practice log</div>
+        <h1>Ready to drive?</h1>
+        <div class="sub" id="logLabel"></div>
+      </div>
+      <div class="who">
+        <div class="badge" id="avatar">🚗</div>
+        <button class="linkbtn" id="signOut">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Create your driving log (first time only) -->
+    <div class="card" id="logSetup" hidden>
+      <h2 class="card-title">Create your driving log</h2>
+      <p class="note" style="margin-bottom:12px">Start a shared record for practice drives on this device.</p>
+      <label class="field"><span>Log name</span><input id="logNameInput" autocomplete="off" placeholder="e.g. Our family practice log"></label>
+      <button id="logCreate" class="dark">Create log</button>
+      <div class="error" id="logMsg"></div>
+    </div>
+
+    <div id="mainBody">
+      <div class="panel">
+        <div class="panel-top">
+          <div class="status" id="statusLabel">Location-based logging</div>
+          <svg class="navicon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 3 3 10.5l7.5 3L13.5 21 21 3Z"/></svg>
+        </div>
+
+        <!-- Before the drive (matches the Thunkable Drive screen) -->
+        <div id="idleBlock">
+          <h2 class="hero">Every mile counts.</h2>
+          <p class="hint">Confirm with your supervising adult, then start recording before you set off.</p>
+        </div>
+
+        <!-- During the drive -->
+        <div id="liveBlock" hidden>
+          <div class="panel-row">
+            <div class="timer"><b id="timer">0:00</b></div>
+            <div class="score">Score<b id="score">100%</b></div>
+          </div>
+          <p class="hint">Keep your eyes on the road. The camera checks your eyes, gaze and head position while the app is open.</p>
+          <div id="stage" class="stage">
+            <video id="video" playsinline muted></video>
+            <canvas id="canvas"></canvas>
+            <div class="overlay"><div class="icon">!</div><div id="alertText">⚠ DISTRACTED</div></div>
+            <div class="banner" id="banner">Starting camera…</div>
+          </div>
+        </div>
+
+        <button class="outline" id="guardBtn">
+          <svg id="guardIcon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/></svg>
+          <span id="guardTxt">Guardian passcode verification</span>
+        </button>
+        <button id="btn" class="start">▶ Start drive</button>
+        <div class="error light" id="startMsg"></div>
+
+      </div>
+
+      <div class="section-title">Live trip stats</div>
+      <div class="grid">
+        <div class="card"><h3><i>👁</i>Eye Status</h3><div class="v" id="ear">–</div><div class="l" id="earL">–</div></div>
+        <div class="card"><h3><i>〰</i>Gaze</h3><div class="v" id="gaze">–</div><div class="l" id="gazeL">–</div></div>
+        <div class="card"><h3><i>↻</i>Head Pose</h3><div class="v" id="head">–</div><div class="l" id="headL">–</div></div>
+        <div class="card"><h3><i>⚑</i>Alerts</h3><div class="v" id="alerts">0</div><div class="l">this drive</div></div>
+        <div class="card speed" id="speedCard">
+          <div>
+            <h3><i>⏱</i>Speed</h3>
+            <div class="v"><span id="mph">–</span><small>mph</small></div>
+            <div class="l" id="speedL">Starts with your drive</div>
+          </div>
+          <div class="limit"><small>SPEED<br>LIMIT</small><b id="limit">–</b></div>
+        </div>
+      </div>
+      <div class="card summary" id="summary"></div>
+    </div>
+  </section>
+
+  <!-- ================= TRIPS TAB ================= -->
+  <section id="tab-trips" hidden>
+    <div class="eyebrow">The shared record</div>
+    <h1>Driving log</h1>
+    <p class="intro">Every drive is saved automatically. Drives that passed Face ID and the guardian passcode are marked Verified; drives verified by passcode only are marked No Face ID.</p>
+    <div class="section-title log-head">All drives <span id="logCount">0 drives</span></div>
+    <div class="card log" id="log"></div>
+    <div class="actions">
+      <button id="pdfBtn" class="dark">⤓ Download PDF report</button>
+      <button id="clearBtn" class="ghost">Clear log</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRESS TAB ================= -->
+  <section id="tab-progress" hidden>
+    <div class="eyebrow">Permit-hour overview</div>
+    <h1>The road ahead</h1>
+    <p class="intro">A clear picture of your verified practice hours toward New Jersey's requirement.</p>
+    <div class="card">
+      <div class="prog-row">
+        <div class="prog-head">Total hours <span id="totalTxt">0.0 / 50 h</span></div>
+        <div class="bar"><i id="totalBar"></i></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-head">Night hours <span id="nightTxt">0.0 / 10 h</span></div>
+        <div class="bar night"><i id="nightBar"></i></div>
+      </div>
+      <p class="note">Drives count once the guardian passcode is verified. Night time is measured between sunset and sunrise.</p>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><h3><i>✓</i>Verified drives</h3><div class="v" id="statDrives">0</div></div>
+      <div class="card"><h3><i>◎</i>Avg attention</h3><div class="v" id="statScore">–</div></div>
+    </div>
+    <div class="block">
+      <div class="section-title">Driver &amp; guardian</div>
+      <div class="card">
+        <label class="field"><span>Driver name</span><input id="pfDriver" autocomplete="off" placeholder="e.g. Alex Smith"></label>
+        <label class="field"><span>Permit number</span><input id="pfPermit" autocomplete="off" placeholder="Optional"></label>
+        <label class="field"><span>Supervising guardian</span><input id="pfGuardian" autocomplete="off" placeholder="e.g. Jordan Smith"></label>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== Bottom tab bar ===== -->
+<nav class="tabbar" id="tabbar" hidden>
+  <button data-tab="drive" class="on"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6.5 17v2M17.5 17v2M4 13l2-6h12l2 6v4H4v-4Z"/><circle cx="7.5" cy="14" r=".8" fill="currentColor"/><circle cx="16.5" cy="14" r=".8" fill="currentColor"/></svg>Drive</button>
+  <button data-tab="trips"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>Trips</button>
+  <button data-tab="progress"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 7-8"/><path d="M15 6h4v4"/></svg>Progress</button>
+</nav>
+
+<!-- ===== Guardian passcode screen (from the Thunkable app) ===== -->
+<div class="modal" id="pcModal" hidden>
+  <div class="modal-card">
+    <h2 class="card-title" id="pcTitle">Guardian passcode</h2>
+    <p class="note" id="pcCopy">Ask the supervising adult to enter the passcode to authorize this drive.</p>
+    <input id="pcInput" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
+    <button id="pcSubmit" class="dark">Verify passcode</button>
+    <button id="pcCancel" class="ghost">Cancel</button>
+    <div class="error" id="pcMsg"></div>
+  </div>
+</div>
+
+<script type="module">
+// The face-tracking library is loaded only when a drive starts, so the
+// buttons keep working even if it can't be downloaded.
+const VISION_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+// ---- Tunable thresholds ----
+const CFG = {
+  EAR_CLOSED: 0.20,   // eye aspect ratio below this = eyes closed
+  DROWSY_MS: 1500,    // eyes closed this long -> DROWSY (red)
+  YAW_LIMIT: 0.18,    // head turned left/right (relative to calibrated baseline)
+  PITCH_LIMIT: 0.12,  // head tilted down/up
+  GAZE_LIMIT: 0.45,   // eyes looking sideways
+  DISTRACT_MS: 800,   // looking away this long -> DISTRACTED (yellow)
+  CALIB_FRAMES: 45,   // ~1.5 s of "look at the road" calibration
+};
+
+const $ = id => document.getElementById(id);
+const video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
+const stage = $("stage"), btn = $("btn");
+
+let landmarker, stream, running = false, lastVideoTime = -1;
+let startTime = 0, totalFrames = 0, goodFrames = 0, alertCount = 0;
+let closedSince = null, awaySince = null, lastState = "ok", lastBeep = 0;
+let calib = { n: 0, yaw: 0, pitch: 0 };
+let reasonCounts = {};          // why each alert fired this drive (for feedback)
+
+// ---- Landmark indices (MediaPipe 478-point face mesh) ----
+const L_EYE = [33, 160, 158, 133, 153, 144];   // p1..p6
+const R_EYE = [362, 385, 387, 263, 373, 380];
+const L_IRIS = 468, R_IRIS = 473;
+const NOSE = 1, CHIN = 152, L_CHEEK = 234, R_CHEEK = 454;
+
+async function loadModel() {
+  $("banner").textContent = "Loading face model…";
+  let FaceLandmarker, FilesetResolver;
+  try { ({ FaceLandmarker, FilesetResolver } = await import(VISION_URL)); }
+  catch { throw new Error("couldn't download the face model. Check your internet connection and open the app from its https:// link."); }
+  const files = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  const make = delegate => FaceLandmarker.createFromOptions(files, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate,
+    },
+    runningMode: "VIDEO",
+    numFaces: 1,
+  });
+  // Use the GPU when the phone supports it; fall back to the CPU if it doesn't.
+  try { landmarker = await make("GPU"); }
+  catch { landmarker = await make("CPU"); }
+}
+
+// ---- Geometry helpers ----
+const px = p => ({ x: p.x * video.videoWidth, y: p.y * video.videoHeight });
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function ear(lm, idx) {             // Eye Aspect Ratio
+  const [p1, p2, p3, p4, p5, p6] = idx.map(i => px(lm[i]));
+  return (dist(p2, p6) + dist(p3, p5)) / (2 * dist(p1, p4));
+}
+function irisOffset(lm, cornerA, cornerB, iris) {   // -1 .. +1, 0 = centered
+  const a = lm[cornerA].x, b = lm[cornerB].x, c = lm[iris].x;
+  return ((c - Math.min(a, b)) / Math.abs(b - a)) * 2 - 1;
+}
+function headPose(lm) {
+  const nose = lm[NOSE], l = lm[L_CHEEK], r = lm[R_CHEEK], chin = lm[CHIN];
+  const eyeMidY = (lm[33].y + lm[263].y) / 2;
+  const yaw = (nose.x - (l.x + r.x) / 2) / Math.abs(r.x - l.x);
+  const pitch = (nose.y - eyeMidY) / (chin.y - eyeMidY);
+  return { yaw, pitch };
+}
+
+// ---- Main loop ----
+function loop() {
+  if (!running) return;
+  if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    const res = landmarker.detectForVideo(video, performance.now());
+    process(res);
+  }
+  updateTimer();
+  requestAnimationFrame(loop);
+}
+
+function process(res) {
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const now = performance.now();
+  const face = res.faceLandmarks && res.faceLandmarks[0];
+
+  if (!face) {
+    awaySince ??= now;
+    setState(now - awaySince > CFG.DISTRACT_MS ? "warn" : lastState, "NO FACE - Watch the road!", "noFace");
+    count(false);
+    return;
+  }
+
+  // draw green mesh dots
+  ctx.fillStyle = "rgba(34,197,94,.85)";
+  for (let i = 0; i < face.length; i += 2) {
+    const p = px(face[i]);
+    ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+  }
+
+  const e = (ear(face, L_EYE) + ear(face, R_EYE)) / 2;
+  const g = (irisOffset(face, 33, 133, L_IRIS) + irisOffset(face, 362, 263, R_IRIS)) / 2;
+  const { yaw, pitch } = headPose(face);
+
+  // calibration: average neutral pose while driver looks ahead
+  if (calib.n < CFG.CALIB_FRAMES) {
+    calib.yaw += yaw; calib.pitch += pitch; calib.n++;
+    $("banner").textContent = `Calibrating… look straight at the road (${Math.round(calib.n / CFG.CALIB_FRAMES * 100)}%)`;
+    if (calib.n === CFG.CALIB_FRAMES) {
+      calib.yaw /= calib.n; calib.pitch /= calib.n;
+      $("banner").textContent = "Monitoring";
+      startTime = Date.now();
+    }
+    showMetrics(e, g, 0, 0);
+    setState("ok");
+    return;
+  }
+
+  const dYaw = yaw - calib.yaw, dPitch = pitch - calib.pitch;
+  showMetrics(e, g, dYaw, dPitch);
+
+  // 1) Drowsiness: eyes closed too long
+  if (e < CFG.EAR_CLOSED) closedSince ??= now; else closedSince = null;
+  if (closedSince && now - closedSince > CFG.DROWSY_MS) {
+    setState("alert", "DROWSY - Eyes closed!", "drowsy"); count(false); return;
+  }
+
+  // 2) Distraction: head or eyes away from road
+  let reason = null, key = null;
+  if (Math.abs(dYaw) > CFG.YAW_LIMIT) { reason = "DISTRACTED - Head turned!"; key = "head"; }
+  else if (dPitch > CFG.PITCH_LIMIT) { reason = "DISTRACTED - Looking down!"; key = "down"; }
+  else if (Math.abs(g) > CFG.GAZE_LIMIT) { reason = "DISTRACTED - Eyes off road!"; key = "eyes"; }
+
+  if (reason) {
+    awaySince ??= now;
+    if (now - awaySince > CFG.DISTRACT_MS) { setState("warn", reason, key); count(false); return; }
+  } else awaySince = null;
+
+  setState("ok"); count(true);
+}
+
+function showMetrics(e, g, dYaw, dPitch) {
+  $("ear").textContent = e.toFixed(3);
+  $("earL").textContent = e < CFG.EAR_CLOSED ? "Eyes closed" : "Eyes open";
+  $("gaze").textContent = Math.abs(g).toFixed(3);
+  $("gazeL").textContent = Math.abs(g) > CFG.GAZE_LIMIT ? (g > 0 ? "Looking left" : "Looking right") : "Centered";
+  $("head").textContent = `${(dYaw * 100).toFixed(0)}° / ${(dPitch * 100).toFixed(0)}°`;
+  $("headL").textContent = "yaw / pitch (approx.)";
+}
+
+function count(good) {
+  totalFrames++; if (good) goodFrames++;
+  $("score").textContent = Math.round(goodFrames / totalFrames * 100) + "%";
+}
+
+function setState(state, text, key) {
+  if (state !== "ok" && lastState === "ok") {
+    alertCount++; $("alerts").textContent = alertCount;
+    if (key) reasonCounts[key] = (reasonCounts[key] || 0) + 1;
+  }
+  lastState = state;
+  stage.className = "stage " + state;
+  if (text) $("alertText").textContent = "⚠ " + text;
+  if (state !== "ok") beep(state === "alert" ? 880 : 520);
+}
+
+let audio;
+function beep(freq) {
+  const now = performance.now();
+  if (now - lastBeep < 700) return;
+  lastBeep = now;
+  audio ??= new AudioContext();
+  const o = audio.createOscillator(), gn = audio.createGain();
+  o.frequency.value = freq; gn.gain.value = 0.08;
+  o.connect(gn).connect(audio.destination);
+  o.start(); o.stop(audio.currentTime + 0.18);
+}
+
+function updateTimer() {
+  if (!startTime) return;
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+// ---- Start / End ----
+// Switches the Drive card between "before the drive" and "recording".
+function setDriveUI(live) {
+  $("idleBlock").hidden = live;
+  $("liveBlock").hidden = !live;
+  $("guardBtn").hidden = live;
+  $("statusLabel").textContent = live ? "Recording in progress" : "Location-based logging";
+  $("statusLabel").classList.toggle("active", live);
+}
+
+async function startDrive(skipFace = false) {
+  $("startMsg").textContent = "";
+  // 1) The guardian passcode must be verified first (Start drive is locked until then).
+  if (!verify.guardian) {
+    $("startMsg").textContent = "Ask your supervising adult to verify the guardian passcode first.";
+    return;
+  }
+  // Phones (especially iPhone Safari) only allow sound if it's switched on during a tap.
+  try { audio ??= new AudioContext(); audio.resume(); } catch {}
+  btn.disabled = true; btn.textContent = "Checking Face ID…";
+
+  // 2) Face ID confirms the permit holder before the drive starts.
+  if (skipFace) {
+    verify.face = "skipped";                       // still counts: the guardian passcode was verified
+  } else {
+    const r = await runFaceId();
+    if (!r.status) {
+      btn.disabled = false; btn.textContent = "▶ Start drive";
+      $("startMsg").innerHTML = "";
+      $("startMsg").append(r.error + " Tap Start drive to try again.");
+      const skip = document.createElement("button");
+      skip.className = "linkbtn light";
+      skip.textContent = "Continue without Face ID";
+      skip.onclick = () => startDrive(true);
+      $("startMsg").append(document.createElement("br"), skip);
+      return;
+    }
+    verify.face = r.status;
+  }
+
+  // 3) Start the camera and the attention monitor.
+  setDriveUI(true);
+  btn.textContent = "Starting camera…";
+  try {
+    if (!landmarker) await loadModel();
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" } });
+    video.srcObject = stream; await video.play();
+  } catch (err) {
+    setDriveUI(false);
+    $("startMsg").textContent = "Camera/model error: " + err.message;
+    btn.disabled = false; btn.textContent = "▶ Start drive"; return;
+  }
+  Object.assign(calib, { n: 0, yaw: 0, pitch: 0 });
+  totalFrames = goodFrames = alertCount = 0; startTime = 0;
+  closedSince = awaySince = null; lastState = "ok"; reasonCounts = {};
+  $("alerts").textContent = "0"; $("score").textContent = "100%"; $("timer").textContent = "0:00";
+  $("summary").style.display = "none";
+  running = true; btn.disabled = false;
+  btn.className = ""; btn.textContent = "◼ End & save drive";
+  startSpeed();
+  loop();
+}
+
+function endDrive() {
+  running = false;
+  stopSpeed();
+  stream?.getTracks().forEach(t => t.stop());
+  stage.className = "stage";
+  $("banner").textContent = "Drive ended";
+  btn.className = "start"; btn.textContent = "▶ Start drive";
+  setDriveUI(false);
+  const sum = $("summary");
+  const saved = saveDrive();
+  let note = "Too short to log (drives under 5 seconds aren't saved).";
+  if (saved) note = verify.face === "face-id"
+    ? "Saved to your driving log and counted toward your hours (verified with Face ID and guardian passcode)."
+    : "Saved and counted toward your hours (verified with guardian passcode; Face ID wasn't used).";
+  sum.innerHTML = `<h3>Drive summary</h3>
+    <div class="l">Duration: <b>${$("timer").textContent}</b> · Attention score: <b>${$("score").textContent}</b> · Alerts: <b>${alertCount}</b></div>
+    <div class="l" style="margin-top:6px">${note}</div>`;
+  sum.style.display = "block";
+  // Like the Thunkable app, the guardian check resets after every drive.
+  verify.face = null; verify.guardian = false;
+  updateVerifyUI();
+}
+
+btn.onclick = () => running ? endDrive() : startDrive();
+
+// =====================================================================
+//  SPEED  (GPS speed + speed limit from OpenStreetMap)
+// =====================================================================
+const SPD = {
+  OVER_MPH: 5,          // this many mph over the limit counts as speeding...
+  OVER_MS: 10000,       // ...if it lasts this long
+  CLEAR_MPH: 2,         // must drop to within this of the limit to end an event
+  MAX_ACCURACY_M: 30,   // ignore GPS fixes worse than this
+  LIMIT_EVERY_MS: 15000, LIMIT_EVERY_M: 400,  // how often to look up the limit
+};
+let geoWatch = null, wakeLock = null;
+let lastFix = null, curMph = null, curLimit = null, limitReq = null, lastLimitAt = null;
+let overSince = null, inSpeeding = false;
+let speedEvents = 0, maxOver = 0, limitKnownMs = 0;
+
+const toRad = d => d * Math.PI / 180;
+function meters(a, b) {                       // distance between two GPS points
+  const R = 6371000, dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function startSpeed() {
+  lastFix = curMph = curLimit = lastLimitAt = overSince = null;
+  inSpeeding = false; speedEvents = 0; maxOver = 0; limitKnownMs = 0;
+  showSpeed(null, null, "Waiting for GPS…");
+  try { navigator.wakeLock?.request("screen").then(l => wakeLock = l).catch(() => {}); } catch {}
+  if (!navigator.geolocation) { showSpeed(null, null, "GPS not available on this device"); return; }
+  geoWatch = navigator.geolocation.watchPosition(
+    p => onFix(p.coords.latitude, p.coords.longitude, p.coords.speed, p.coords.accuracy, p.timestamp),
+    e => showSpeed(null, curLimit, e.code === 1 ? "Location permission denied" : "GPS signal lost"),
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+}
+
+function stopSpeed() {
+  if (geoWatch !== null) navigator.geolocation.clearWatch(geoWatch);
+  geoWatch = null;
+  try { wakeLock?.release(); } catch {} wakeLock = null;
+  $("speedCard").classList.remove("over");
+}
+
+function onFix(lat, lng, speedMps, accuracy, t, simLimit) {
+  if (accuracy > SPD.MAX_ACCURACY_M) { showSpeed(curMph, curLimit, "Weak GPS signal"); return; }
+  const fix = { lat, lng, t };
+  let mph = speedMps != null && !Number.isNaN(speedMps) ? speedMps * 2.237 : null;
+  if (mph == null && lastFix && t > lastFix.t) mph = meters(lastFix, fix) / ((t - lastFix.t) / 1000) * 2.237;
+  const dt = lastFix ? t - lastFix.t : 0;
+  if (curLimit != null && dt > 0 && dt < 10000) limitKnownMs += dt;
+  lastFix = fix;
+  curMph = mph == null ? curMph : Math.max(0, mph);
+
+  if (simLimit !== undefined) curLimit = simLimit;   // test mode supplies its own limits
+  else maybeLookupLimit(fix);
+  checkSpeeding(t);
+}
+
+function checkSpeeding(t) {
+  if (curMph == null || curLimit == null || !startTime) { showSpeed(curMph, curLimit); return; }
+  const over = curMph - curLimit;
+  let note;
+  if (over >= SPD.OVER_MPH) {
+    overSince ??= t;
+    if (!inSpeeding && t - overSince >= SPD.OVER_MS) {
+      inSpeeding = true; speedEvents++; speedChime();
+    }
+    if (inSpeeding) maxOver = Math.max(maxOver, Math.round(over));
+    else {                                   // over, but not long enough yet: show the countdown
+      const left = Math.ceil((SPD.OVER_MS - (t - overSince)) / 1000);
+      note = `${Math.round(over)} mph over · logs as speeding in ${left}s`;
+    }
+  } else if (over < SPD.CLEAR_MPH) { overSince = null; inSpeeding = false; }
+  else if (!inSpeeding) overSince = null;
+  showSpeed(curMph, curLimit, note);
+}
+
+function showSpeed(mph, limit, note) {
+  $("mph").textContent = mph == null ? "–" : Math.round(mph);
+  $("limit").textContent = limit == null ? "?" : limit;
+  $("speedCard").classList.toggle("over", inSpeeding);
+  let label = note;
+  if (!label) {
+    if (inSpeeding) label = `Over the limit by ${Math.round(mph - limit)} mph`;
+    else if (limit == null) label = "Speed limit unknown on this road";
+    else label = "Limit from map data";
+  }
+  if (!label.startsWith("Over") && speedEvents) label += ` · ${speedEvents} speeding`;
+  $("speedL").textContent = label;
+}
+
+// Two-tone chime, different from the distraction beeps
+function speedChime() {
+  try {
+    audio ??= new AudioContext();
+    [660, 990].forEach((f, i) => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = f; g.gain.value = 0.09;
+      o.connect(g).connect(audio.destination);
+      const at = audio.currentTime + i * 0.2;
+      o.start(at); o.stop(at + 0.16);
+    });
+  } catch {}
+}
+
+// ---- Speed limit lookup (OpenStreetMap Overpass API, free) ----
+function parseMaxspeed(v) {
+  if (!v) return null;
+  const n = parseFloat(v);
+  if (Number.isNaN(n)) return null;
+  return /mph/i.test(v) ? Math.round(n) : Math.round(n / 1.609 / 5) * 5;   // plain numbers are km/h
+}
+function maybeLookupLimit(fix) {
+  if (limitReq) return;
+  if (lastLimitAt && fix.t - lastLimitAt.t < SPD.LIMIT_EVERY_MS && meters(lastLimitAt, fix) < SPD.LIMIT_EVERY_M) return;
+  lastLimitAt = fix;
+  const q = `[out:json][timeout:10];way(around:25,${fix.lat},${fix.lng})[highway][maxspeed];out tags 3;`;
+  const ctrl = new AbortController(); const kill = setTimeout(() => ctrl.abort(), 10000);
+  limitReq = fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST", body: "data=" + encodeURIComponent(q), signal: ctrl.signal,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(j => {
+      const limits = (j.elements || []).map(e => parseMaxspeed(e.tags?.maxspeed)).filter(v => v != null);
+      curLimit = limits.length ? limits[0] : null;   // no data -> we don't judge speeding here
+    })
+    .catch(() => {})                                    // keep the last known limit on network errors
+    .finally(() => { clearTimeout(kill); limitReq = null; showSpeed(curMph, curLimit); });
+}
+
+
+// =====================================================================
+//  DRIVING LOG  (stored on this device only)
+// =====================================================================
+const GOAL_HOURS = 50, GOAL_NIGHT = 10;
+const LOG_KEY = "driveverify_log_v1", PROFILE_KEY = "driveverify_profile_v1";
+// Used to work out sunset/sunrise. Central New Jersey by default.
+const HOME = { lat: 40.5, lng: -74.4 };
+
+function loadJSON(k, fallback) {
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+let drives = loadJSON(LOG_KEY, []);
+
+const FEEDBACK = {
+  down:   ["looking down", "Keep your phone out of reach so you're not tempted to look down."],
+  head:   ["turning your head", "Check mirrors with quick glances instead of turning your head away."],
+  eyes:   ["eyes drifting off the road", "Keep your eyes moving between the road ahead and your mirrors."],
+  noFace: ["face out of view", "Sit upright and keep the camera pointed at you."],
+  drowsy: ["drowsiness", "You showed signs of tiredness. Don't drive when sleepy, and take breaks on long drives."],
+};
+
+function makeFeedback(score, alerts, reasons) {
+  if (alerts === 0) return "Excellent focus. No distraction alerts this drive.";
+  if (reasons.drowsy) return FEEDBACK.drowsy[1];
+  const top = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
+  const lead = score >= 90 ? "Good drive." : score >= 75 ? "Room to improve." : "Focus needs work.";
+  if (!top) return lead;
+  const [label, tip] = FEEDBACK[top[0]];
+  return `${lead} Most alerts came from ${label}. ${tip}`;
+}
+
+function speedFeedback() {
+  if (!speedEvents) return "";
+  return ` ${speedEvents} speeding event${speedEvents === 1 ? "" : "s"} (up to ${maxOver} mph over). Ease off and check your speedometer.`;
+}
+// What to show in the Speeding column
+function speedingText(d) {
+  if (d.speeding == null) return "-";                       // logged before speed tracking existed
+  if (d.speeding > 0) return `${d.speeding} (max +${d.maxOver})`;
+  return d.limitCoverage > 0 ? "None" : "No data";
+}
+
+function saveDrive() {
+  if (!startTime) return false;                       // calibration never finished
+  const end = Date.now();
+  const durationSec = Math.round((end - startTime) / 1000);
+  if (durationSec < 5) return false;
+  const score = totalFrames ? Math.round(goodFrames / totalFrames * 100) : 100;
+  drives.push({
+    id: end,
+    start: startTime,
+    durationSec,
+    nightSec: nightSeconds(startTime, end),
+    score,
+    alerts: alertCount,
+    reasons: { ...reasonCounts },
+    feedback: makeFeedback(score, alertCount, reasonCounts) + speedFeedback(),
+    speeding: speedEvents,
+    maxOver,
+    limitCoverage: Math.min(100, Math.round(limitKnownMs / (durationSec * 1000) * 100)),
+    guardian: $("pfGuardian").value.trim(),
+    verified: { face: verify.face, guardian: verify.guardian },
+  });
+  saveJSON(LOG_KEY, drives);
+  renderLog();
+  return true;
+}
+
+// ---- Sunrise / sunset (simplified astronomical formula) ----
+function sunTimes(day, lat, lng) {
+  const rad = Math.PI / 180, dayMs = 86400000, J1970 = 2440588, J2000 = 2451545;
+  const toJ = d => d.valueOf() / dayMs - 0.5 + J1970;
+  const fromJ = j => new Date((j + 0.5 - J1970) * dayMs);
+  const lw = rad * -lng, phi = rad * lat;
+  const n = Math.round(toJ(day) - J2000 - 0.0009 - lw / (2 * Math.PI));
+  const ds = 0.0009 + lw / (2 * Math.PI) + n;
+  const M = rad * (357.5291 + 0.98560028 * ds);
+  const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+  const L = M + C + rad * 102.9372 + Math.PI;
+  const dec = Math.asin(Math.sin(rad * 23.4397) * Math.sin(L));
+  const Jnoon = J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+  const w = Math.acos((Math.sin(rad * -0.833) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec)));
+  const a = 0.0009 + (w + lw) / (2 * Math.PI) + n;
+  const Jset = J2000 + a + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+  return { rise: fromJ(Jnoon - (Jset - Jnoon)), set: fromJ(Jset) };
+}
+function isNight(t) {
+  const d = new Date(t);
+  const { rise, set } = sunTimes(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12), HOME.lat, HOME.lng);
+  return t < rise.getTime() || t > set.getTime();
+}
+function nightSeconds(start, end) {                   // checks the drive minute by minute
+  let night = 0;
+  for (let t = start; t < end; t += 60000) {
+    const step = Math.min(60000, end - t);
+    if (isNight(t + step / 2)) night += step;
+  }
+  return Math.round(night / 1000);
+}
+
+// ---- Formatting helpers ----
+const fmtDate = t => new Date(t).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+const fmtTime = t => new Date(t).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+function fmtDur(sec) {
+  if (sec < 60) return `${sec} s`;
+  const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m} min`;
+}
+const scoreClass = s => s >= 90 ? "good" : s >= 75 ? "mid" : "low";
+// A drive counts toward the 50 hours only if it wasn't a test drive and it
+// passed both checks (drives saved before verification existed still count).
+// A drive counts once the guardian passcode was verified. Face ID adds a
+// "Verified" mark; drives without it still count and are marked "No Face ID".
+// (Old test-mode drives saved by earlier versions never count.)
+const counts = d => !d.simulated && (!d.verified || d.verified.guardian);
+const faceOk = d => d.verified && d.verified.face === "face-id";
+function totals() {
+  const real = drives.filter(counts);
+  const sec = real.reduce((a, d) => a + d.durationSec, 0);
+  const night = real.reduce((a, d) => a + (d.nightSec || 0), 0);
+  const avg = real.length ? Math.round(real.reduce((a, d) => a + d.score * d.durationSec, 0) / Math.max(sec, 1)) : 0;
+  const alerts = real.reduce((a, d) => a + d.alerts, 0);
+  const speeding = real.reduce((a, d) => a + (d.speeding || 0), 0);
+  return { hours: sec / 3600, nightHours: night / 3600, avg, alerts, speeding, count: real.length };
+}
+
+function renderLog() {
+  const t = totals();
+  $("totalTxt").textContent = `${t.hours.toFixed(1)} / ${GOAL_HOURS} h`;
+  $("nightTxt").textContent = `${t.nightHours.toFixed(1)} / ${GOAL_NIGHT} h`;
+  $("totalBar").style.width = Math.min(100, t.hours / GOAL_HOURS * 100) + "%";
+  $("nightBar").style.width = Math.min(100, t.nightHours / GOAL_NIGHT * 100) + "%";
+  $("logCount").textContent = `${drives.length} drive${drives.length === 1 ? "" : "s"}`;
+  $("statDrives").textContent = t.count;
+  $("statScore").textContent = t.count ? t.avg + "%" : "–";
+
+  const log = $("log");
+  if (!drives.length) {
+    log.innerHTML = `<div class="empty">No drives yet. Finish a drive and it will appear here.</div>`;
+    return;
+  }
+  log.innerHTML = "";
+  [...drives].reverse().forEach(d => {
+    const el = document.createElement("div");
+    el.className = "entry";
+    el.innerHTML = `
+      <div class="entry-top">
+        <div class="when">${fmtDate(d.start)}${d.nightSec > d.durationSec / 2 ? '<span class="tag">Night</span>' : ""}${d.simulated ? '<span class="tag test">Test</span>' : ""}${!d.simulated && d.verified ? (faceOk(d) ? '<span class="tag ok">Verified</span>' : '<span class="tag no">No Face ID</span>') : ""}
+          <small>${fmtTime(d.start)} · ${fmtDur(d.durationSec)} · Speeding: ${speedingText(d)}</small></div>
+        <div class="stats">${d.alerts} alert${d.alerts === 1 ? "" : "s"}
+          <span class="pill ${scoreClass(d.score)}">${d.score}%</span></div>
+      </div>
+      <div class="feedback"></div>`;
+    el.querySelector(".feedback").textContent = d.feedback;
+    log.appendChild(el);
+  });
+}
+
+// ---- Driver & guardian profile ----
+const profile = loadJSON(PROFILE_KEY, { driver: "", permit: "", guardian: "" });
+$("pfDriver").value = profile.driver; $("pfPermit").value = profile.permit; $("pfGuardian").value = profile.guardian;
+[["pfDriver", "driver"], ["pfPermit", "permit"], ["pfGuardian", "guardian"]].forEach(([id, k]) => {
+  $(id).addEventListener("input", e => { profile[k] = e.target.value; saveJSON(PROFILE_KEY, profile); });
+});
+
+// ---- Clear log (tap twice to confirm) ----
+let clearArmed = null;
+$("clearBtn").onclick = () => {
+  const b = $("clearBtn");
+  if (!clearArmed) {
+    b.textContent = "Tap again to delete all drives"; b.classList.add("confirm");
+    clearArmed = setTimeout(() => { clearArmed = null; b.textContent = "Clear log"; b.classList.remove("confirm"); }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null;
+  drives = []; saveJSON(LOG_KEY, drives); renderLog();
+  b.textContent = "Clear log"; b.classList.remove("confirm");
+  $("msg").textContent = "Log cleared.";
+};
+
+// =====================================================================
+//  PDF REPORT
+// =====================================================================
+async function fingerprint() {
+  // A short code computed from every logged drive. If any number in the
+  // log changes, the code changes too.
+  const data = new TextEncoder().encode(JSON.stringify({ profile, drives }));
+  try {
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    const hex = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    return `${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}`;
+  } catch { return "unavailable"; }
+}
+
+async function downloadPDF() {
+  const msg = $("msg");
+  if (!drives.length) { msg.textContent = "Log at least one drive before downloading a report."; return; }
+  if (!window.jspdf) { msg.textContent = "PDF tools didn't load. Check your internet connection and reload."; return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const W = doc.internal.pageSize.getWidth(), M = 48;
+  const t = totals(), code = await fingerprint(), now = Date.now();
+  const SLATE = [31, 58, 69], AMBER = [237, 163, 58], MUTED = [108, 118, 124], INK = [27, 42, 51];
+
+  // Header band
+  doc.setFillColor(...SLATE); doc.rect(0, 0, W, 86, "F");
+  doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+  doc.text("MileStone Practice Driving Report", M, 44);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(200, 215, 220);
+  doc.text(`Generated ${fmtDate(now)} at ${fmtTime(now)}`, M, 64);
+
+  // Driver details
+  let y = 116;
+  doc.setTextColor(...INK); doc.setFontSize(11);
+  const detail = (label, value, x) => {
+    doc.setFont("helvetica", "bold"); doc.text(label, x, y);
+    doc.setFont("helvetica", "normal"); doc.text(value || "Not provided", x + 92, y);
+  };
+  detail("Driver:", profile.driver, M); y += 18;
+  detail("Permit no.:", profile.permit, M); y += 18;
+  detail("Guardian:", profile.guardian, M); y += 18;
+  detail("Account:", account.email, M); y += 18;
+  detail("Driving log:", account.logName, M); y += 30;
+  // Driver's account photo, top right of the details
+  if (account.photo) { try { doc.addImage(account.photo, "JPEG", W - M - 80, 100, 80, 80); } catch {} }
+
+  // Progress bars
+  const bar = (label, value, goal, color) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...INK);
+    doc.text(label, M, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${value.toFixed(1)} of ${goal} hours`, W - M, y, { align: "right" });
+    y += 8;
+    doc.setFillColor(236, 235, 229); doc.roundedRect(M, y, W - 2 * M, 9, 4.5, 4.5, "F");
+    const fill = Math.min(1, value / goal) * (W - 2 * M);
+    if (fill > 0) { doc.setFillColor(...color); doc.roundedRect(M, y, Math.max(fill, 9), 9, 4.5, 4.5, "F"); }
+    y += 28;
+  };
+  bar("Total supervised practice", t.hours, GOAL_HOURS, AMBER);
+  bar("Night driving", t.nightHours, GOAL_NIGHT, SLATE);
+
+  // Summary line
+  doc.setFontSize(10); doc.setTextColor(...MUTED);
+  doc.text(`${t.count} drives   |   Avg attention score: ${t.avg}%   |   Total alerts: ${t.alerts}   |   Speeding events: ${t.speeding}`, M, y);
+  y += 14;
+  doc.text("VERIFIED = Face ID and guardian passcode both passed.", M, y);
+  y += 14;
+  doc.text("NO FACE ID = guardian passcode passed; Face ID was unavailable or skipped.", M, y);
+  y += 14;
+  if (drives.some(d => !counts(d))) {
+    doc.text("Rows marked TEST are excluded from the totals above.", M, y);
+    y += 14;
+  }
+  y += 6;
+
+  // Drive table
+  doc.autoTable({
+    startY: y,
+    margin: { left: M, right: M, bottom: 60 },
+    head: [["#", "Date", "Start", "Duration", "Day/Night", "Score", "Alerts", "Speeding", "Feedback"]],
+    body: drives.map((d, i) => [
+      i + 1, fmtDate(d.start), fmtTime(d.start), fmtDur(d.durationSec),
+      (d.nightSec > d.durationSec / 2 ? "Night" : "Day") +
+        (d.simulated ? "\nTEST" : d.verified ? (faceOk(d) ? "\nVERIFIED" : "\nNO FACE ID") : ""),
+      `${d.score}%`, d.alerts, speedingText(d), d.feedback,
+    ]),
+    styles: { font: "helvetica", fontSize: 8.5, cellPadding: 5, textColor: INK, valign: "top" },
+    headStyles: { fillColor: SLATE, textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [247, 246, 242] },
+    columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 58 }, 2: { cellWidth: 46 }, 3: { cellWidth: 48 },
+                    4: { cellWidth: 54 }, 5: { cellWidth: 36 }, 6: { cellWidth: 36 }, 7: { cellWidth: 54 } },
+  });
+
+  // Signature block
+  y = doc.lastAutoTable.finalY + 36;
+  if (y > doc.internal.pageSize.getHeight() - 140) { doc.addPage(); y = 72; }
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text("I have reviewed this log and confirm I supervised the drives listed above.", M, y);
+  y += 44;
+  doc.setDrawColor(...MUTED);
+  doc.line(M, y, M + 230, y); doc.line(W - M - 150, y, W - M, y);
+  doc.setFontSize(9); doc.setTextColor(...MUTED);
+  doc.text("Guardian signature", M, y + 13); doc.text("Date", W - M - 150, y + 13);
+
+  // Footer on every page
+  const pages = doc.getNumberOfPages(), H = doc.internal.pageSize.getHeight();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(8); doc.setTextColor(...MUTED);
+    doc.text("This report supports, and does not replace, the NJMVC Certification of Supervised Driving (Form BA-CSD).", M, H - 34);
+    doc.text(`Report code: ${code}`, M, H - 22);
+    doc.text(`Page ${p} of ${pages}`, W - M, H - 22, { align: "right" });
+  }
+
+  const n = new Date(now);
+  const stamp = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
+  doc.save(`MileStone-report-${stamp}.pdf`);
+  msg.textContent = "Report downloaded.";
+}
+
+$("pdfBtn").onclick = () => downloadPDF().catch(err => { $("msg").textContent = "Couldn't create the PDF: " + err.message; });
+
+// =====================================================================
+//  ACCOUNT, SIGN-IN, DRIVING LOG SETUP  (rebuilt from the Thunkable app)
+// =====================================================================
+const ACCOUNT_KEY = "milestone_account_v1", SESSION_KEY = "milestone_signed_in";
+// email, account photo, Face ID credential id, guardian passcode (hashed), log name
+const account = loadJSON(ACCOUNT_KEY, { email: "", photo: null, credId: null, passHash: null, logName: "" });
+const saveAccount = () => saveJSON(ACCOUNT_KEY, account);
+
+function isSignedIn() { try { return sessionStorage.getItem(SESSION_KEY) === "1"; } catch { return false; } }
+function setSignedIn(v) { try { v ? sessionStorage.setItem(SESSION_KEY, "1") : sessionStorage.removeItem(SESSION_KEY); } catch {} }
+
+function showView() {
+  const inApp = isSignedIn();
+  $("signinView").hidden = inApp;
+  $("mainView").hidden = !inApp;
+  if (!inApp) { $("tabbar").hidden = true; renderSignin(); return; }
+  if (account.logName && !account.joinCode) { account.joinCode = makeJoinCode(); saveAccount(); }
+  $("logSetup").hidden = !!account.logName;
+  $("mainBody").hidden = !account.logName;
+  $("logLabel").textContent = account.logName ? `${account.logName} · Join code ${account.joinCode}` : "Create your driving log to begin";
+  $("avatar").innerHTML = account.photo ? `<img src="${account.photo}" alt="Driver">` : "🚗";
+  $("tabbar").hidden = false;
+  updateVerifyUI();
+}
+
+// Six-character join code for the driving log, like the Thunkable app.
+function makeJoinCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return Array.from(crypto.getRandomValues(new Uint8Array(6)), n => chars[n % chars.length]).join("");
+}
+
+// ---- Tabs: Drive, Trips, Progress ----
+function showTab(name) {
+  ["drive", "trips", "progress"].forEach(t => { $("tab-" + t).hidden = t !== name; });
+  document.querySelectorAll("#tabbar button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("#tabbar button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+function renderSignin() {
+  if (!$("siEmail").value) $("siEmail").value = account.email || "";   // never overwrite what's typed
+  const has = !!account.photo;
+  $("siPhotoPreview").hidden = !has;
+  if (has) $("siPhotoPreview").src = account.photo;
+  $("siPhotoTxt").textContent = has ? "✓ Account photo added" : "📷 Add account photo (once)";
+  $("siPhotoBtn").classList.toggle("done", has);
+  $("siPhoto").disabled = has;
+}
+
+// Account photo: opens the front camera on phones, shrinks the picture, saves it once.
+$("siPhoto").onchange = e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const scale = Math.min(1, 320 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    account.photo = c.toDataURL("image/jpeg", 0.8);
+    saveAccount(); renderSignin(); $("siMsg").textContent = "";
+    URL.revokeObjectURL(img.src);
+  };
+  img.onerror = () => { $("siMsg").textContent = "Photo unavailable. Try taking your account photo again."; };
+  img.src = URL.createObjectURL(file);
+};
+
+$("siSubmit").onclick = () => {
+  const email = $("siEmail").value.trim(), password = $("siPassword").value;
+  if (!email || !password) { $("siMsg").textContent = "Enter an email and password to continue."; return; }
+  if (!account.photo) { $("siMsg").textContent = "Add your account photo during initial setup."; return; }
+  account.email = email; saveAccount();
+  $("siPassword").value = "";            // the password is never saved
+  setSignedIn(true); showView();
+};
+
+$("signOut").onclick = () => {
+  if (running) { $("startMsg").textContent = "End the drive before signing out."; return; }
+  setSignedIn(false); verify.face = null; verify.guardian = false; showTab("drive"); showView();
+};
+
+$("logCreate").onclick = () => {
+  const name = $("logNameInput").value.trim();
+  if (!name) { $("logMsg").textContent = "Enter a name for your driving log."; return; }
+  account.logName = name; account.joinCode = makeJoinCode(); saveAccount(); showView();
+};
+
+// =====================================================================
+//  PRE-DRIVE CHECKS: FACE ID + GUARDIAN PASSCODE
+// =====================================================================
+const verify = { face: null, guardian: false };   // face: "face-id" | "unavailable" | null
+
+function updateVerifyUI() {
+  $("guardTxt").textContent = verify.guardian ? "Guardian passcode verified" : "Guardian passcode verification";
+  $("guardBtn").classList.toggle("done", verify.guardian);
+  $("guardIcon").innerHTML = verify.guardian
+    ? '<circle cx="12" cy="12" r="9.5"/><path d="m7.5 12.5 3 3 6-6.5"/>'
+    : '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/>';
+  if (!running) btn.disabled = !verify.guardian;     // Start drive unlocks after the passcode
+}
+
+// Face ID runs automatically when Start drive is tapped. It uses the phone's
+// built-in biometrics through the browser (WebAuthn) and confirms the person
+// enrolled on this phone; nothing leaves the device.
+// Returns "face-id" (passed), "unavailable" (no Face ID on this device), or null (failed/cancelled).
+const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const fromB64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+async function faceIdAvailable() {
+  try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); }
+  catch { return false; }
+}
+// Checked once when the page loads, so tapping Start drive goes straight to Face ID
+// (Safari only allows Face ID immediately after a tap).
+let faceAvail = null;
+faceIdAvailable().then(v => { faceAvail = v; });
+
+async function runFaceId() {
+  if (!window.isSecureContext)
+    return { status: null, error: "Face ID only works from the app's secure https:// link, not a downloaded file or preview." };
+  let inFrame = false;
+  try { inFrame = window.self !== window.top; } catch { inFrame = true; }
+  const avail = faceAvail ?? await faceIdAvailable();
+  if (!avail) return { status: "unavailable" };
+  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  try {
+    if (!account.credId) {
+      // First drive: register Face ID for this driver on this device.
+      const cred = await navigator.credentials.create({ publicKey: {
+        challenge, rp: { name: "MileStone" },
+        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: account.email || "driver", displayName: account.email || "Driver" },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "preferred" },
+        timeout: 60000,
+      }});
+      account.credId = toB64(cred.rawId); saveAccount();
+    } else {
+      // Every drive after that: confirm with Face ID.
+      await navigator.credentials.get({ publicKey: {
+        challenge, userVerification: "required", timeout: 60000,
+        allowCredentials: [{ type: "public-key", id: fromB64(account.credId) }],
+      }});
+    }
+    return { status: "face-id" };
+  } catch (e) {
+    // Already set up on this device earlier: sign in with the existing Face ID instead.
+    if (e.name === "InvalidStateError" && !account.credId) {
+      try {
+        const a = await navigator.credentials.get({ publicKey: { challenge, userVerification: "required", timeout: 60000 } });
+        account.credId = toB64(a.rawId); saveAccount();
+        return { status: "face-id" };
+      } catch (e2) { e = e2; }
+    }
+    const error =
+      e.name === "NotAllowedError" ? (inFrame
+        ? "Face ID can't run inside a preview or another app. Open the link directly in Safari."
+        : "Face ID was cancelled, timed out, or didn't recognize you.")
+      : e.name === "SecurityError" ? "Face ID needs the app's secure https:// link (for example, your Netlify link)."
+      : `Face ID error (${e.name}).`;
+    return { status: null, error };
+  }
+}
+
+// Guardian passcode: created once by the supervising adult, entered before every drive.
+async function hashPass(p) {
+  try {
+    const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("milestone:" + p));
+    return toB64(h);
+  } catch { return "plain:" + p; }              // only on non-secure pages, where hashing isn't available
+}
+let pcMode = "verify";
+function openPasscode() {
+  pcMode = account.passHash ? "verify" : "create";
+  $("pcTitle").textContent = pcMode === "create" ? "Create guardian passcode" : "Guardian passcode";
+  $("pcCopy").textContent = pcMode === "create"
+    ? "A supervising adult should create and remember this passcode (at least 4 digits)."
+    : "Ask the supervising adult to enter the passcode to authorize this drive.";
+  $("pcSubmit").textContent = pcMode === "create" ? "Save passcode" : "Verify passcode";
+  $("pcInput").value = ""; $("pcMsg").textContent = "";
+  $("pcModal").hidden = false;
+  setTimeout(() => $("pcInput").focus(), 50);
+}
+$("guardBtn").onclick = () => { if (!running && !verify.guardian) openPasscode(); };
+$("pcCancel").onclick = () => { $("pcModal").hidden = true; };
+$("pcInput").addEventListener("keydown", e => { if (e.key === "Enter") $("pcSubmit").click(); });
+$("pcSubmit").onclick = async () => {
+  const entry = $("pcInput").value;
+  if (pcMode === "create") {
+    if (entry.length < 4) { $("pcMsg").textContent = "Choose a guardian passcode with at least four characters."; return; }
+    account.passHash = await hashPass(entry); saveAccount();
+    verify.guardian = true;
+  } else if (await hashPass(entry) === account.passHash) {
+    verify.guardian = true;
+  } else {
+    $("pcInput").value = "";
+    $("pcMsg").textContent = "Incorrect passcode. Ask the supervising adult to enter the guardian passcode.";
+    return;
+  }
+  $("pcModal").hidden = true;
+  updateVerifyUI();
+};
+
+renderLog();
+showView();
+</script>
+</body>
+</html>
