@@ -118,7 +118,7 @@
 
   .tag.test{background:var(--amber);color:var(--text)}
 
-  /* ---- Sign-in (from the Thunkable app) ---- */
+  
   [hidden]{display:none !important}
   .signin{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
   .shield{width:52px;height:52px;border-radius:50%;background:#E5EFEB;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
@@ -143,7 +143,7 @@
   .tag.ok{background:var(--green);color:#fff}
   .tag.no{background:#e9e7e0;color:var(--muted)}
 
-  /* ---- Drive tab, matched to the Thunkable Drive screen ---- */
+  
   .who{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
   .who .badge{width:72px;height:72px;font-size:28px}
   .who .linkbtn{text-decoration:none;color:var(--text);font-size:15px;margin:0}
@@ -178,7 +178,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-<!-- ===== 1. Sign-in (rebuilt from the Thunkable LoginGate) ===== -->
+
 <div class="app signin" id="signinView" hidden>
   <div class="shield">🛡</div>
   <div class="eyebrow">MileStone</div>
@@ -196,7 +196,6 @@
   </div>
 </div>
 
-<!-- ===== 2. Main app: three tabs, like the Thunkable app ===== -->
 <div class="app tabbed" id="mainView" hidden>
 
   <!-- ================= DRIVE TAB ================= -->
@@ -229,7 +228,7 @@
           <svg class="navicon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 3 3 10.5l7.5 3L13.5 21 21 3Z"/></svg>
         </div>
 
-        <!-- Before the drive (matches the Thunkable Drive screen) -->
+       
         <div id="idleBlock">
           <h2 class="hero">Every mile counts.</h2>
           <p class="hint">Confirm with your supervising adult, then start recording before you set off.</p>
@@ -330,7 +329,7 @@
   <button data-tab="progress"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 7-8"/><path d="M15 6h4v4"/></svg>Progress</button>
 </nav>
 
-<!-- ===== Guardian passcode screen (from the Thunkable app) ===== -->
+
 <div class="modal" id="pcModal" hidden>
   <div class="modal-card">
     <h2 class="card-title" id="pcTitle">Guardian passcode</h2>
@@ -611,7 +610,7 @@ function endDrive() {
     <div class="l">Duration: <b>${$("timer").textContent}</b> · Attention score: <b>${$("score").textContent}</b> · Alerts: <b>${alertCount}</b></div>
     <div class="l" style="margin-top:6px">${note}</div>`;
   sum.style.display = "block";
-  // Like the Thunkable app, the guardian check resets after every drive.
+  
   verify.face = null; verify.guardian = false;
   updateVerifyUI();
 }
@@ -1053,7 +1052,7 @@ async function downloadPDF() {
 $("pdfBtn").onclick = () => downloadPDF().catch(err => { $("msg").textContent = "Couldn't create the PDF: " + err.message; });
 
 // =====================================================================
-//  ACCOUNT, SIGN-IN, DRIVING LOG SETUP  (rebuilt from the Thunkable app)
+
 // =====================================================================
 const ACCOUNT_KEY = "milestone_account_v1", SESSION_KEY = "milestone_signed_in";
 // email, account photo, Face ID credential id, guardian passcode (hashed), log name
@@ -1077,7 +1076,7 @@ function showView() {
   updateVerifyUI();
 }
 
-// Six-character join code for the driving log, like the Thunkable app.
+
 function makeJoinCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from(crypto.getRandomValues(new Uint8Array(6)), n => chars[n % chars.length]).join("");
